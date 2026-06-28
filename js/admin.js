@@ -1,14 +1,27 @@
 // js/admin.js
 (async () => {
   const container = document.getElementById('admin-content');
-  const { data: { user } } = await supabase.auth.getUser();
+  if (!container) return;
 
-  if (!user) {
-    showLoginForm(container);
-    return;
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError) {
+      container.innerHTML = `<div class="alert alert-danger">Erro de autenticação: ${authError.message}. Verifique se o Supabase está configurado corretamente.</div>`;
+      console.error('Auth error:', authError);
+      return;
+    }
+
+    if (!user) {
+      showLoginForm(container);
+      return;
+    }
+
+    await showDashboard(container, user);
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-danger">Erro ao inicializar: ${e.message}. Abra o console (F12) para mais detalhes.</div>`;
+    console.error('Admin init error:', e);
   }
-
-  await showDashboard(container, user);
 })();
 
 function showLoginForm(container) {
@@ -36,11 +49,15 @@ function showLoginForm(container) {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      document.getElementById('login-error').textContent = 'Login inválido.';
-    } else {
-      window.location.reload();
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        document.getElementById('login-error').textContent = 'Login inválido.';
+      } else {
+        window.location.reload();
+      }
+    } catch (err) {
+      document.getElementById('login-error').textContent = 'Erro ao tentar login. Tente novamente.';
     }
   });
 }
@@ -71,12 +88,21 @@ async function showDashboard(container, user) {
     window.location.reload();
   });
 
-  loadProducts();
-  loadConfigForm();
+  // Listener do botão "Novo Produto" sempre registrado, independente da lista
+  document.getElementById('new-product-btn').addEventListener('click', () => showProductForm());
+
+  try {
+    loadProducts();
+    loadConfigForm();
+  } catch (e) {
+    console.error('Dashboard load error:', e);
+  }
 }
 
 async function loadProducts() {
   const listEl = document.getElementById('products-list');
+  if (!listEl) return;
+
   const { data: products, error } = await supabase
     .from('products')
     .select('*')
@@ -119,12 +145,11 @@ async function loadProducts() {
   html += '</tbody></table></div>';
   listEl.innerHTML = html;
 
-  // Event listeners
+  // Listeners para os botões da lista (confirmar, liberar, editar, excluir)
   document.querySelectorAll('.confirm-payment-btn').forEach(b => b.addEventListener('click', confirmPayment));
   document.querySelectorAll('.release-btn').forEach(b => b.addEventListener('click', releaseProduct));
   document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', editProduct));
   document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', deleteProduct));
-  document.getElementById('new-product-btn')?.addEventListener('click', showProductForm);
 }
 
 function getTimeRemaining(reservedAt) {
@@ -219,14 +244,12 @@ function showProductForm(product = null) {
     }
 
     if (id) {
-      // Atualizar
       const { error } = await supabase
         .from('products')
         .update({ name, description, price, image_url, updated_at: new Date() })
         .eq('id', id);
       if (error) alert('Erro: ' + error.message);
     } else {
-      // Criar
       const { error } = await supabase
         .from('products')
         .insert({ name, description, price, image_url });
@@ -258,6 +281,7 @@ async function deleteProduct(e) {
 async function loadConfigForm() {
   const { data: config } = await supabase.from('config').select('*').eq('id', 1).single();
   const container = document.getElementById('config-form-container');
+  if (!container) return;
   container.innerHTML = `
     <form id="config-form">
       <div class="mb-3">
