@@ -3,13 +3,18 @@ body { padding-top: 4.5rem; }
 .product-card img { height: 200px; object-fit: cover; }
 .timer { font-size: 2rem; font-weight: bold; }
 .payment-box { background: #f8f9fa; border-radius: 10px; }
-.whatsapp-btn {
-  background-color: #25D366;
-  border-color: #25D366;
-  color: white;
+
+/* Botão WhatsApp - estilos explícitos para todos os estados */
+.btn.whatsapp-btn,
+.btn.whatsapp-btn:hover,
+.btn.whatsapp-btn:focus,
+.btn.whatsapp-btn:active {
+  background-color: #25D366 !important;
+  border-color: #25D366 !important;
+  color: white !important;
 }
-.whatsapp-btn:hover {
-  background-color: #1da851; /* verde mais escuro no hover */
-  border-color: #1da851;
-  color: white;
+
+.btn.whatsapp-btn:hover {
+  background-color: #1da851 !important;
+  border-color: #1da851 !important;
 }
