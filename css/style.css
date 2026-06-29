@@ -3,4 +3,13 @@ body { padding-top: 4.5rem; }
 .product-card img { height: 200px; object-fit: cover; }
 .timer { font-size: 2rem; font-weight: bold; }
 .payment-box { background: #f8f9fa; border-radius: 10px; }
-.whatsapp-btn { background-color: #25D366; border-color: #25D366; }
+.whatsapp-btn {
+  background-color: #25D366;
+  border-color: #25D366;
+  color: white;
+}
+.whatsapp-btn:hover {
+  background-color: #1da851; /* verde mais escuro no hover */
+  border-color: #1da851;
+  color: white;
+}
