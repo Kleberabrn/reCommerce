@@ -1,4 +1,10 @@
 // js/pagamento.js
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 (async () => {
   const params = new URLSearchParams(window.location.search);
   const productId = params.get('id');
@@ -10,7 +16,6 @@
     return;
   }
 
-  // Busca produto e configuração
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('*')
@@ -22,7 +27,6 @@
     return;
   }
 
-  // Valida token e estado da reserva
   if (product.reservation_token !== token || product.status !== 'Reservado') {
     container.innerHTML = '<div class="alert alert-warning">Reserva inválida ou expirada. <a href="./">Voltar</a></div>';
     return;
@@ -39,17 +43,10 @@
     return;
   }
 
-  // Renderiza a página de pagamento
   const reservedAt = new Date(product.reserved_at);
   const expiresAt = new Date(reservedAt.getTime() + 10 * 60 * 1000);
   renderPaymentPage(product, config, expiresAt);
 })();
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 function renderPaymentPage(product, config, expiresAt) {
   const container = document.getElementById('payment-content');
@@ -81,7 +78,6 @@ function renderPaymentPage(product, config, expiresAt) {
     </div>
   `;
 
-  // Evento para o botão Copiar
   document.getElementById('copy-pix-btn').addEventListener('click', () => {
     const input = document.getElementById('pix-copy');
     input.select();
@@ -89,7 +85,6 @@ function renderPaymentPage(product, config, expiresAt) {
     alert('Código Pix copiado!');
   });
 
-  // Inicia o cronômetro
   startTimer(expiresAt, product.id);
 }
 
@@ -109,7 +104,6 @@ function startTimer(expiresAt, productId) {
     if (diff <= 0) {
       timerEl.textContent = '00:00';
       clearInterval(interval);
-      // Tenta expirar a reserva no backend
       await supabase.rpc('expire_reservation', { p_product_id: productId });
       document.querySelector('.payment-box').innerHTML = '<div class="alert alert-warning">Reserva expirada. Este produto não está mais disponível.</div>';
       return;
