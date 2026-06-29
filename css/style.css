@@ -4,17 +4,24 @@ body { padding-top: 4.5rem; }
 .timer { font-size: 2rem; font-weight: bold; }
 .payment-box { background: #f8f9fa; border-radius: 10px; }
 
-/* Botão WhatsApp - estilos explícitos para todos os estados */
-.btn.whatsapp-btn,
-.btn.whatsapp-btn:hover,
-.btn.whatsapp-btn:focus,
-.btn.whatsapp-btn:active {
+/* Botão WhatsApp: anulação total de transparências */
+.whatsapp-btn,
+.whatsapp-btn:hover,
+.whatsapp-btn:active,
+.whatsapp-btn:focus,
+.whatsapp-btn:disabled,
+.whatsapp-btn.active,
+.whatsapp-btn:target,
+.whatsapp-btn:visited {
   background-color: #25D366 !important;
   border-color: #25D366 !important;
   color: white !important;
+  background-image: none !important;  /* Remove gradiente Bootstrap */
+  opacity: 1 !important;               /* Impede qualquer transparência */
+  box-shadow: none !important;         /* Remove sombra que pode simular desbotamento */
 }
 
-.btn.whatsapp-btn:hover {
-  background-color: #1da851 !important;
+.whatsapp-btn:hover {
+  background-color: #1da851 !important;  /* Verde mais escuro no hover, mas ainda sólido */
   border-color: #1da851 !important;
 }
