@@ -24,7 +24,7 @@
 
   // Valida token e estado da reserva
   if (product.reservation_token !== token || product.status !== 'Reservado') {
-    container.innerHTML = '<div class="alert alert-warning">Reserva inválida ou expirada. <a href="/">Voltar</a></div>';
+    container.innerHTML = '<div class="alert alert-warning">Reserva inválida ou expirada. <a href="./">Voltar</a></div>';
     return;
   }
 
@@ -45,12 +45,18 @@
   renderPaymentPage(product, config, expiresAt);
 })();
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function renderPaymentPage(product, config, expiresAt) {
   const container = document.getElementById('payment-content');
   container.innerHTML = `
     <div class="row">
       <div class="col-md-6">
-        <img src="${product.image_url || 'https://via.placeholder.com/400'}" class="img-fluid rounded" alt="${product.name}">
+        <img src="${product.image_url || 'https://via.placeholder.com/400'}" class="img-fluid rounded" alt="${escapeHtml(product.name)}">
       </div>
       <div class="col-md-6">
         <h2>${escapeHtml(product.name)}</h2>
@@ -60,8 +66,8 @@ function renderPaymentPage(product, config, expiresAt) {
           <p class="fw-bold">Pague via Pix:</p>
           ${config.pix_qr_code_url ? `<img src="${config.pix_qr_code_url}" class="img-fluid mb-2" alt="QR Code Pix">` : ''}
           <div class="input-group mb-3">
-            <input type="text" id="pix-copy" class="form-control" value="${config.pix_copy_paste || ''}" readonly>
-            <button class="btn btn-outline-secondary" onclick="copyPix()">Copiar</button>
+            <input type="text" id="pix-copy" class="form-control" value="${escapeHtml(config.pix_copy_paste || '')}" readonly>
+            <button class="btn btn-outline-secondary" id="copy-pix-btn">Copiar</button>
           </div>
           <div class="text-center mb-3">
             <strong>Tempo restante: <span id="timer" class="timer text-danger"></span></strong>
@@ -74,6 +80,14 @@ function renderPaymentPage(product, config, expiresAt) {
       </div>
     </div>
   `;
+
+  // Evento para o botão Copiar
+  document.getElementById('copy-pix-btn').addEventListener('click', () => {
+    const input = document.getElementById('pix-copy');
+    input.select();
+    document.execCommand('copy');
+    alert('Código Pix copiado!');
+  });
 
   // Inicia o cronômetro
   startTimer(expiresAt, product.id);
@@ -107,11 +121,4 @@ function startTimer(expiresAt, productId) {
 
   tick();
   const interval = setInterval(tick, 1000);
-}
-
-function copyPix() {
-  const input = document.getElementById('pix-copy');
-  input.select();
-  document.execCommand('copy');
-  alert('Código Pix copiado!');
 }
