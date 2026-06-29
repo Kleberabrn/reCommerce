@@ -3,15 +3,19 @@
   const container = document.getElementById('products-container');
   if (!container) return;
 
+  console.log('[app] Carregando produtos...');
   const { data: products, error } = await supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
+    console.error('[app] Erro ao carregar produtos:', error);
     container.innerHTML = '<p class="text-danger">Erro ao carregar produtos.</p>';
     return;
   }
+
+  console.log('[app] Produtos carregados:', products.length);
 
   if (!products.length) {
     container.innerHTML = '<p>Nenhum produto cadastrado.</p>';
@@ -60,20 +64,35 @@ function escapeHtml(text) {
 
 async function handleBuy(e) {
   const productId = e.target.dataset.id;
+  console.log('[app] Tentando reservar produto:', productId);
+
   e.target.disabled = true;
   e.target.textContent = 'Reservando...';
 
-  const { data: token, error } = await supabase.rpc('reserve_product', {
-    p_product_id: productId
-  });
+  try {
+    const { data: token, error } = await supabase.rpc('reserve_product', {
+      p_product_id: productId
+    });
 
-  if (error) {
-    alert('Não foi possível reservar. Talvez o produto já tenha sido reservado por outra pessoa.');
+    if (error) {
+      console.error('[app] Erro na RPC reserve_product:', error);
+      alert('Não foi possível reservar. Talvez o produto já tenha sido reservado por outra pessoa.');
+      e.target.disabled = false;
+      e.target.textContent = 'Comprar';
+      return;
+    }
+
+    console.log('[app] Reserva bem-sucedida. Token:', token);
+
+    // Redireciona para página de pagamento
+    const redirectUrl = `pagamento.html?id=${productId}&token=${token}`;
+    console.log('[app] Redirecionando para:', redirectUrl);
+    window.location.href = redirectUrl;
+
+  } catch (err) {
+    console.error('[app] Exceção ao reservar:', err);
+    alert('Ocorreu um erro inesperado. Tente novamente.');
     e.target.disabled = false;
     e.target.textContent = 'Comprar';
-    return;
   }
-
-  // Redireciona para página de pagamento com token
-  window.location.href = `pagamento.html?id=${productId}&token=${token}`;
 }
